@@ -2,59 +2,64 @@
 :root{--paper:#f6f3ec;--ink:#22211f;--muted:#77736b;--line:rgba(34,33,31,.16);--coral:#dc6f5c}*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:Arial,sans-serif;overscroll-behavior:none;overflow:hidden}body{-webkit-tap-highlight-color:transparent;user-select:none;display:flex;flex-direction:column}button{font:inherit;color:inherit}.topbar{height:76px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,5vw,72px);border-bottom:1px solid var(--line)}.brand{color:inherit;text-decoration:none;font-weight:800;letter-spacing:.16em;font-size:12px;display:flex;align-items:center}.brand span{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:10px;border:1px solid;border-radius:50%;letter-spacing:0;font-size:11px}.top-right{display:flex;align-items:center;gap:14px}.badge{font:600 10px monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--coral);border:1px solid var(--coral);border-radius:99px;padding:5px 10px}.sound{border:0;background:none;cursor:pointer;font:600 10px monospace;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px;padding:12px}.sound-icon{display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:50%}.stage{flex:1 1 auto;position:relative;min-height:0}#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}.hintbar{flex:0 0 auto;height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--line)}.hint{font:600 10px monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;text-align:center;padding:0 16px}
 </style></head><body><header class="topbar"><a class="brand" href="preview.html"><span>15</span>FIFTEEN</a><div class="top-right"><span class="badge">candidate &middot; private test</span><button class="sound" id="soundBtn"><span class="sound-icon">&#9834;</span><span class="sound-label" id="soundLabel">sound on</span></button></div></header><main class="stage"><canvas id="cv"></canvas></main><footer class="hintbar"><p class="hint" id="hint">press the duck &middot; push down &middot; let go</p></footer><script>
 const $=(s,r=document)=>r.querySelector(s);
-let soundOn=true,audio;
-window.__fifteenSoundAudit={last:null,counts:{blip:0,squeeze:0,release:0,big:0}};
+let soundOn=true,audio=null,master=null,analyser=null;
+window.__fifteenSoundAudit={last:null,counts:{blip:0,squeeze:0,release:0,big:0},audioState:'none',outputLevel:0};
 function mark(k){window.__fifteenSoundAudit.last=k;window.__fifteenSoundAudit.counts[k]++}
-function ctx(){if(!soundOn)return null;audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio}
+function ctx(){if(!soundOn)return null;if(!audio){audio=new(window.AudioContext||window.webkitAudioContext)();master=audio.createGain();master.gain.value=1;analyser=audio.createAnalyser();analyser.fftSize=256;master.connect(analyser);analyser.connect(audio.destination)}if(audio.state==='suspended')audio.resume();window.__fifteenSoundAudit.audioState=audio.state;return audio}
 function buzz(p){if(navigator.vibrate)navigator.vibrate(p)}
-$('#soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('#soundLabel').textContent=soundOn?'sound on':'sound off'});
-function tone(f0,f1,dur,type,vol,vib){const a=ctx();if(!a)return;const t=a.currentTime;const o=a.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur*0.85);if(vib){const l=a.createOscillator();l.frequency.value=28;const lg=a.createGain();lg.gain.value=vib;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur+0.05)}const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.setValueAtTime(vol,t+dur*0.7);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+0.05)}
-function blip(s){tone(520+420*s,(520+420*s)*1.35,0.08,'square',0.06,14);mark('blip')}
-function squeezeS(){tone(480,960,0.19,'square',0.09,26);mark('squeeze')}
-function releaseS(){tone(920,470,0.17,'square',0.09,22);mark('release')}
-function bigS(){const a=ctx();if(!a)return;tone(430,1150,0.34,'square',0.13,34);setTimeout(()=>tone(1150,330,0.3,'square',0.12,30),300);mark('big')}
+$('#soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('#soundLabel').textContent=soundOn?'sound on':'sound off';if(soundOn)ctx()});
+window.addEventListener('pointerdown',()=>{ctx()},{capture:true});
+function tone(f0,f1,dur,type,vol,vib){const a=ctx();if(!a)return;const t=a.currentTime;const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.012);g.gain.setValueAtTime(vol,t+dur*0.65);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);for(const det of[0,7]){const o=a.createOscillator();o.type=type;o.frequency.setValueAtTime(f0+det,t);o.frequency.exponentialRampToValueAtTime(f1+det,t+dur*0.8);if(vib){const l=a.createOscillator();l.frequency.value=30;const lg=a.createGain();lg.gain.value=vib;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur+0.05)}o.connect(g);o.start(t);o.stop(t+dur+0.05)}g.connect(master)}
+function breath(dur,vol,f){const a=ctx();if(!a)return;const t=a.currentTime;const len=Math.floor(a.sampleRate*dur);const b=a.createBuffer(1,len,a.sampleRate);const ch=b.getChannelData(0);for(let i=0;i<len;i++)ch[i]=(Math.random()*2-1)*(1-i/len);const s2=a.createBufferSource();s2.buffer=b;const fl=a.createBiquadFilter();fl.type='bandpass';fl.frequency.value=f;fl.Q.value=0.8;const g=a.createGain();g.gain.value=vol;s2.connect(fl);fl.connect(g);g.connect(master);s2.start(t)}
+function blip(s){tone(500+430*s,(500+430*s)*1.4,0.09,'square',0.22,16);breath(0.07,0.1,2200);mark('blip')}
+function squeezeS(){tone(430,1000,0.22,'square',0.3,30);breath(0.18,0.13,1800);mark('squeeze')}
+function releaseS(){tone(980,430,0.2,'square',0.3,26);breath(0.16,0.12,1600);mark('release')}
+function bigS(){tone(400,1250,0.36,'square',0.36,38);breath(0.3,0.16,2000);setTimeout(()=>tone(1250,300,0.34,'square',0.34,34),310);mark('big')}
 
 const cv=$('#cv'),c=cv.getContext('2d');
 let W=0,H=0,groundY=0,sc=1;
-let s=0,pressing=false,grabY=0,lastBlipS=0,bigDone=false,spring=null;
-let blinkT=0,nextBlink=2500;
+let s=0,sv=0,st=0,pressing=false,grabY=0,lastBlipS=0,bigDone=false,lastBlipT=0;
+let blinkT=0,nextBlink=2500,prevT=0;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 function layout(){const r=cv.getBoundingClientRect();const DPR=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);c.setTransform(DPR,0,0,DPR,0,0);groundY=H*0.8;sc=Math.min(W/330,(H*0.68)/320)}
 window.addEventListener('resize',layout);
 function duckLocal(p){return{x:(p.x-W/2)/sc,y:(p.y-groundY)/sc}}
-function onDuck(l){return l.x>-150&&l.x<150&&l.y>-320&&l.y<30}
+function onDuck(l){return l.x>-160&&l.x<160&&l.y>-330&&l.y<40}
 function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.x,y:e.clientY-r.y}}
 
-function drawDuck(now,sEff){
- const breathe=pressing?0:0.012*Math.sin(now/900);
- const sq=clamp(sEff+breathe,-0.15,1);
+function drawDuck(now,sq){
+ if(!pressing)sq+=0.012*Math.sin(now/900);
  c.save();c.translate(W/2,groundY);
- c.save();c.scale(sc,sc);c.beginPath();c.ellipse(0,4,96+42*sq,13+4*sq,0,0,Math.PI*2);c.fillStyle='rgba(45,39,31,'+(0.16+0.1*sq)+')';c.fill();c.restore();
- c.scale(sc*(1+0.38*sq),sc*(1-0.46*sq));
+ c.save();c.scale(sc,sc);c.beginPath();c.ellipse(0,4,96+52*sq,13+5*sq,0,0,Math.PI*2);c.fillStyle='rgba(45,39,31,'+(0.16+0.12*sq)+')';c.fill();c.restore();
+ const sx=sc*(1+0.5*sq),sy=sc*(1-0.55*sq);
+ c.scale(sx,sy);
  const g=c.createLinearGradient(0,-300,0,0);g.addColorStop(0,'#ffdd6b');g.addColorStop(0.55,'#ffd54a');g.addColorStop(1,'#f7b731');
- c.beginPath();c.ellipse(0,-108,106,96,0,0,Math.PI*2);c.fillStyle=g;c.fill();
- c.beginPath();c.moveTo(72,-158);c.quadraticCurveTo(118,-168,116,-128);c.quadraticCurveTo(96,-138,68,-130);c.closePath();c.fillStyle='#f2b53a';c.fill();
- c.save();c.translate(28,-104);c.rotate(-0.35);c.beginPath();c.ellipse(0,0,47,31,0,0,Math.PI*2);c.fillStyle='#f2b53a';c.fill();c.restore();
- c.beginPath();c.arc(-8,-226,63,0,Math.PI*2);c.fillStyle=g;c.fill();
- c.save();c.globalAlpha=0.22;c.beginPath();c.ellipse(-30,-258,26,15,-0.5,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.restore();
- c.beginPath();c.ellipse(-72,-222,27,16,0,0,Math.PI*2);c.fillStyle='#ff8f3c';c.fill();
- c.beginPath();c.ellipse(-68,-212,19,9,0,0,Math.PI*2);c.fillStyle='#f07f2e';c.fill();
- const closed=sq>0.6||(now<blinkT);
- if(closed){c.beginPath();c.arc(-24,-244,10,Math.PI*0.15,Math.PI*0.85);c.strokeStyle='#22211f';c.lineWidth=3.4;c.lineCap='round';c.stroke()}
- else{c.beginPath();c.arc(-24,-246,9.5,0,Math.PI*2);c.fillStyle='#22211f';c.fill();c.beginPath();c.arc(-27,-249,3.2,0,Math.PI*2);c.fillStyle='#fff';c.fill()}
- c.save();c.globalAlpha=0.35+0.45*sq;c.beginPath();c.arc(14,-210,10+5*sq,0,Math.PI*2);c.fillStyle='#ff9d8a';c.fill();c.restore();
+ c.beginPath();c.ellipse(0,-100,106*(1+0.28*sq),96,0,0,Math.PI*2);c.fillStyle=g;c.fill();
+ c.beginPath();c.moveTo(72+30*sq,-152);c.quadraticCurveTo(122+34*sq,-162,118+30*sq,-124);c.quadraticCurveTo(96+26*sq,-134,68+24*sq,-126);c.closePath();c.fillStyle='#f2b53a';c.fill();
+ c.save();c.translate(28+34*sq,-96);c.rotate(-0.35-0.3*sq);c.beginPath();c.ellipse(0,0,47,31,0,0,Math.PI*2);c.fillStyle='#f2b53a';c.fill();c.restore();
+ const headDrop=92*sq;
+ c.beginPath();c.arc(-8,-226+headDrop,63,0,Math.PI*2);c.fillStyle=g;c.fill();
+ c.save();c.globalAlpha=0.22;c.beginPath();c.ellipse(-30,-258+headDrop,26,15,-0.5,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.restore();
+ c.beginPath();c.ellipse(-72,-222+headDrop,27*(1+0.2*sq),16*(1-0.3*sq),0,0,Math.PI*2);c.fillStyle='#ff8f3c';c.fill();
+ c.beginPath();c.ellipse(-68,-212+headDrop,19,9,0,0,Math.PI*2);c.fillStyle='#f07f2e';c.fill();
+ const closed=sq>0.45||(now<blinkT);
+ if(closed){c.beginPath();c.arc(-24,-244+headDrop,10,Math.PI*0.15,Math.PI*0.85);c.strokeStyle='#22211f';c.lineWidth=3.4;c.lineCap='round';c.stroke()}
+ else{c.beginPath();c.arc(-24,-246+headDrop,9.5,0,Math.PI*2);c.fillStyle='#22211f';c.fill();c.beginPath();c.arc(-27,-249+headDrop,3.2,0,Math.PI*2);c.fillStyle='#fff';c.fill()}
+ c.save();c.globalAlpha=0.35+0.5*sq;c.beginPath();c.arc(14,-210+headDrop,10+7*sq,0,Math.PI*2);c.fillStyle='#ff9d8a';c.fill();c.restore();
  c.restore()}
 
 function frame(now){c.clearRect(0,0,W,H);
+ const dt=Math.min(0.05,(now-prevT)/1000||0.016);prevT=now;
+ const acc=(st-s)*220-sv*(pressing?11:7.5);sv+=acc*dt;s+=sv*dt;
+ if(!pressing&&Math.abs(s)<0.004&&Math.abs(sv)<0.01){s=0;sv=0}
  if(now>nextBlink){blinkT=now+130;nextBlink=now+2600+Math.random()*2600}
- let sEff=s;
- if(spring){const t=(now-spring.t0)/1000;const k=spring.s0*Math.exp(-5.2*t)*Math.cos(11*t);sEff=k;if(t>0.85){spring=null;sEff=0;s=0}}
- drawDuck(now,sEff);
+ drawDuck(now,clamp(s,-0.2,1.05));
+ if(analyser){const buf=new Uint8Array(analyser.frequencyBinCount);analyser.getByteFrequencyData(buf);let mx=0;for(const v of buf)mx=Math.max(mx,v);window.__fifteenSoundAudit.outputLevel=mx}
  requestAnimationFrame(frame)}
 
-cv.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);if(!onDuck(duckLocal(p)))return;pressing=true;spring=null;cv.setPointerCapture(e.pointerId);grabY=p.y;lastBlipS=s;squeezeS();buzz(10)});
-cv.addEventListener('pointermove',e=>{if(!pressing)return;const p=pos(e);const ns=clamp(0.12+(p.y-grabY)/105,0,1);if(Math.abs(ns-lastBlipS)>0.17){lastBlipS=ns;blip(ns);buzz(8)}s=ns;if(s>=0.97&&!bigDone){bigDone=true;bigS();buzz([20,40,45])}});
-function letGo(){if(!pressing)return;pressing=false;bigDone=false;if(s>0.05){releaseS();buzz(12)}spring={t0:performance.now(),s0:s}}
+cv.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);if(!onDuck(duckLocal(p)))return;pressing=true;cv.setPointerCapture(e.pointerId);grabY=p.y;lastBlipS=s;squeezeS();buzz(12)});
+cv.addEventListener('pointermove',e=>{if(!pressing)return;const p=pos(e);st=clamp(0.15+(p.y-grabY)/70,0,1);const now=performance.now();if(Math.abs(st-lastBlipS)>0.12&&now-lastBlipT>90){lastBlipT=now;lastBlipS=st;blip(st);buzz(9)}if(st>=0.97&&!bigDone){bigDone=true;bigS();buzz([25,45,55])}});
+function letGo(){if(!pressing)return;pressing=false;bigDone=false;st=0;if(s>0.05){releaseS();buzz(14)}}
 cv.addEventListener('pointerup',letGo);
 cv.addEventListener('pointercancel',letGo);
 layout();requestAnimationFrame(frame);
