@@ -1,56 +1,61 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>Fifteen - peel (candidate)</title><style>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex,nofollow,noarchive"><title>Fifteen - squeak (candidate)</title><style>
 :root{--paper:#f6f3ec;--ink:#22211f;--muted:#77736b;--line:rgba(34,33,31,.16);--coral:#dc6f5c}*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--paper);color:var(--ink);font-family:Arial,sans-serif;overscroll-behavior:none;overflow:hidden}body{-webkit-tap-highlight-color:transparent;user-select:none;display:flex;flex-direction:column}button{font:inherit;color:inherit}.topbar{height:76px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;padding:0 clamp(16px,5vw,72px);border-bottom:1px solid var(--line)}.brand{color:inherit;text-decoration:none;font-weight:800;letter-spacing:.16em;font-size:12px;display:flex;align-items:center}.brand span{display:inline-grid;place-items:center;width:30px;height:30px;margin-right:10px;border:1px solid;border-radius:50%;letter-spacing:0;font-size:11px}.top-right{display:flex;align-items:center;gap:14px}.badge{font:600 10px monospace;text-transform:uppercase;letter-spacing:.1em;color:var(--coral);border:1px solid var(--coral);border-radius:99px;padding:5px 10px}.sound{border:0;background:none;cursor:pointer;font:600 10px monospace;text-transform:uppercase;letter-spacing:.08em;display:flex;align-items:center;gap:8px;padding:12px}.sound-icon{display:grid;place-items:center;width:24px;height:24px;border:1px solid var(--line);border-radius:50%}.stage{flex:1 1 auto;position:relative;min-height:0}#cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}.hintbar{flex:0 0 auto;height:52px;display:flex;align-items:center;justify-content:center;border-top:1px solid var(--line)}.hint{font:600 10px monospace;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin:0;text-align:center;padding:0 16px}
-</style></head><body><header class="topbar"><a class="brand" href="preview.html"><span>15</span>FIFTEEN</a><div class="top-right"><span class="badge">candidate &middot; private test</span><button class="sound" id="soundBtn"><span class="sound-icon">&#9834;</span><span class="sound-label" id="soundLabel">sound on</span></button></div></header><main class="stage"><canvas id="cv"></canvas></main><footer class="hintbar"><p class="hint" id="hint">grab the film &middot; peel it back &middot; let go anytime</p></footer><script>
+</style></head><body><header class="topbar"><a class="brand" href="preview.html"><span>15</span>FIFTEEN</a><div class="top-right"><span class="badge">candidate &middot; private test</span><button class="sound" id="soundBtn"><span class="sound-icon">&#9834;</span><span class="sound-label" id="soundLabel">sound on</span></button></div></header><main class="stage"><canvas id="cv"></canvas></main><footer class="hintbar"><p class="hint" id="hint">press the duck &middot; push down &middot; let go</p></footer><script>
 const $=(s,r=document)=>r.querySelector(s);
 let soundOn=true,audio;
-window.__fifteenSoundAudit={last:null,counts:{grain:0,slap:0,thwip:0,newfilm:0}};
+window.__fifteenSoundAudit={last:null,counts:{blip:0,squeeze:0,release:0,big:0}};
 function mark(k){window.__fifteenSoundAudit.last=k;window.__fifteenSoundAudit.counts[k]++}
 function ctx(){if(!soundOn)return null;audio=audio||new(window.AudioContext||window.webkitAudioContext)();if(audio.state==='suspended')audio.resume();return audio}
 function buzz(p){if(navigator.vibrate)navigator.vibrate(p)}
 $('#soundBtn').addEventListener('click',()=>{soundOn=!soundOn;$('#soundLabel').textContent=soundOn?'sound on':'sound off'});
-let noiseBuf=null;
-function nz(){const a=ctx();if(!a)return null;if(!noiseBuf){noiseBuf=a.createBuffer(1,Math.floor(a.sampleRate*0.25),a.sampleRate);const c=noiseBuf.getChannelData(0);for(let i=0;i<c.length;i++)c[i]=Math.random()*2-1}return{a,b:noiseBuf}}
-function grain(k){const n=nz();if(!n)return;const a=n.a,t=a.currentTime;const s=a.createBufferSource();s.buffer=n.b;s.playbackRate.value=1.3+Math.random()*1.9;const f=a.createBiquadFilter();f.type='bandpass';f.frequency.value=1500+Math.random()*3300;f.Q.value=1.1;const g=a.createGain();const pk=0.04+0.22*k;g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(pk,t+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t+0.028+Math.random()*0.03);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t,Math.random()*0.18);s.stop(t+0.09);mark('grain')}
-function slap(){const n=nz();if(!n)return;const a=n.a,t=a.currentTime;const s=a.createBufferSource();s.buffer=n.b;const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=750;const g=a.createGain();g.gain.setValueAtTime(0.28,t);g.gain.exponentialRampToValueAtTime(0.001,t+0.13);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);s.stop(t+0.16);const o=a.createOscillator();o.type='triangle';o.frequency.setValueAtTime(170,t);o.frequency.exponentialRampToValueAtTime(68,t+0.13);const g2=a.createGain();g2.gain.setValueAtTime(0.2,t);g2.gain.exponentialRampToValueAtTime(0.001,t+0.15);o.connect(g2);g2.connect(a.destination);o.start(t);o.stop(t+0.16);mark('slap')}
-function thwip(){const n=nz();if(!n)return;const a=n.a,t=a.currentTime;const o=a.createOscillator();o.type='sawtooth';o.frequency.setValueAtTime(1500,t);o.frequency.exponentialRampToValueAtTime(230,t+0.22);const f=a.createBiquadFilter();f.type='lowpass';f.frequency.value=2300;const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.15,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.27);o.connect(f);f.connect(g);g.connect(a.destination);o.start(t);o.stop(t+0.3);const s=a.createBufferSource();s.buffer=n.b;const bf=a.createBiquadFilter();bf.type='bandpass';bf.frequency.setValueAtTime(3100,t);bf.frequency.exponentialRampToValueAtTime(850,t+0.2);const g2=a.createGain();g2.gain.setValueAtTime(0.11,t);g2.gain.exponentialRampToValueAtTime(0.0001,t+0.22);s.connect(bf);bf.connect(g2);g2.connect(a.destination);s.start(t);s.stop(t+0.26);mark('thwip')}
-function squeegee(){const n=nz();if(!n)return;const a=n.a,t=a.currentTime;const s=a.createBufferSource();s.buffer=n.b;s.loop=true;const f=a.createBiquadFilter();f.type='bandpass';f.Q.value=2.2;f.frequency.setValueAtTime(480,t);f.frequency.exponentialRampToValueAtTime(2500,t+0.42);const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.09,t+0.05);g.gain.setValueAtTime(0.09,t+0.38);g.gain.exponentialRampToValueAtTime(0.0001,t+0.5);s.connect(f);f.connect(g);g.connect(a.destination);s.start(t);s.stop(t+0.55);mark('newfilm')}
-function ping(dl){const a=ctx();if(!a)return;const t=a.currentTime+dl;const o=a.createOscillator();o.type='sine';o.frequency.value=2500+Math.random()*2600;const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.045,t+0.012);g.gain.exponentialRampToValueAtTime(0.0001,t+0.2);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+0.22)}
+function tone(f0,f1,dur,type,vol,vib){const a=ctx();if(!a)return;const t=a.currentTime;const o=a.createOscillator();o.type=type;o.frequency.setValueAtTime(f0,t);o.frequency.exponentialRampToValueAtTime(f1,t+dur*0.85);if(vib){const l=a.createOscillator();l.frequency.value=28;const lg=a.createGain();lg.gain.value=vib;l.connect(lg);lg.connect(o.frequency);l.start(t);l.stop(t+dur+0.05)}const g=a.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.015);g.gain.setValueAtTime(vol,t+dur*0.7);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(a.destination);o.start(t);o.stop(t+dur+0.05)}
+function blip(s){tone(520+420*s,(520+420*s)*1.35,0.08,'square',0.06,14);mark('blip')}
+function squeezeS(){tone(480,960,0.19,'square',0.09,26);mark('squeeze')}
+function releaseS(){tone(920,470,0.17,'square',0.09,22);mark('release')}
+function bigS(){const a=ctx();if(!a)return;tone(430,1150,0.34,'square',0.13,34);setTimeout(()=>tone(1150,330,0.3,'square',0.12,30),300);mark('big')}
 
 const cv=$('#cv'),c=cv.getContext('2d');
-let W=0,H=0,scr=null,A=null,u=null,L=1;
-let d=0,state='on',dragging=false,grabOff=0,lastD=0,lastT=0,lastGrain=0;
-let anim=null,fly=null,applyP=0,sparkles=[],hintEl=$('#hint');
+let W=0,H=0,groundY=0,sc=1;
+let s=0,pressing=false,grabY=0,lastBlipS=0,bigDone=false,spring=null;
+let blinkT=0,nextBlink=2500;
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-function layout(){const r=cv.getBoundingClientRect();const DPR=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);c.setTransform(DPR,0,0,DPR,0,0);const w=Math.min(W*0.84,420);const h=Math.min(w*1.52,H*0.94);scr={x:(W-w)/2,y:(H-h)/2,w,h,r:26};A={x:scr.x+scr.w,y:scr.y};const B={x:scr.x,y:scr.y+scr.h};L=Math.hypot(B.x-A.x,B.y-A.y);u={x:(B.x-A.x)/L,y:(B.y-A.y)/L}}
+function layout(){const r=cv.getBoundingClientRect();const DPR=Math.min(window.devicePixelRatio||1,2);W=r.width;H=r.height;cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);c.setTransform(DPR,0,0,DPR,0,0);groundY=H*0.8;sc=Math.min(W/330,(H*0.68)/320)}
 window.addEventListener('resize',layout);
-function proj(p){return (p.x-A.x)*u.x+(p.y-A.y)*u.y}
-function inside(p){return p.x>=scr.x&&p.x<=scr.x+scr.w&&p.y>=scr.y&&p.y<=scr.y+scr.h}
-function halfPoly(dd,keepLess){const P=[[scr.x,scr.y],[scr.x+scr.w,scr.y],[scr.x+scr.w,scr.y+scr.h],[scr.x,scr.y+scr.h]];const out=[];const val=q=>(q[0]-A.x)*u.x+(q[1]-A.y)*u.y-dd;for(let i=0;i<4;i++){const a=P[i],b=P[(i+1)%4];const sa=val(a),sb=val(b);const inA=keepLess?sa<=0:sa>=0;if(inA)out.push(a);if((sa<0&&sb>0)||(sa>0&&sb<0)){const t=sa/(sa-sb);out.push([a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t])}}return out}
-function frontSeg(poly){const corners=new Set([scr.x+','+scr.y,(scr.x+scr.w)+','+scr.y,(scr.x+scr.w)+','+(scr.y+scr.h),scr.x+','+(scr.y+scr.h)]);const pts=poly.filter(p=>!corners.has(p[0]+','+p[1]));return pts.length>=2?[pts[0],pts[1]]:null}
-function path(poly){c.beginPath();c.moveTo(poly[0][0],poly[0][1]);for(let i=1;i<poly.length;i++)c.lineTo(poly[i][0],poly[i][1]);c.closePath()}
-function rr(x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.arcTo(x+w,y,x+w,y+h,r);c.arcTo(x+w,y+h,x,y+h,r);c.arcTo(x,y+h,x,y,r);c.arcTo(x,y,x+w,y,r);c.closePath()}
-
-function drawScreen(now){c.save();c.shadowColor='rgba(45,39,31,.25)';c.shadowBlur=30;c.shadowOffsetY=14;rr(scr.x-9,scr.y-9,scr.w+18,scr.h+18,34);c.fillStyle='#17171a';c.fill();c.restore();rr(scr.x,scr.y,scr.w,scr.h,scr.r);const g=c.createLinearGradient(scr.x,scr.y,scr.x+scr.w,scr.y+scr.h);g.addColorStop(0,'#79d2ff');g.addColorStop(0.45,'#a78bff');g.addColorStop(1,'#ff9ec7');c.fillStyle=g;c.fill();c.save();rr(scr.x,scr.y,scr.w,scr.h,scr.r);c.clip();const sg=c.createLinearGradient(scr.x,scr.y,scr.x+scr.w*0.7,scr.y+scr.h*0.7);sg.addColorStop(0,'rgba(255,255,255,.34)');sg.addColorStop(0.35,'rgba(255,255,255,0)');c.fillStyle=sg;c.fillRect(scr.x,scr.y,scr.w,scr.h);c.fillStyle='rgba(255,255,255,.85)';c.font='600 12px Arial';c.fillText('9:41',scr.x+16,scr.y+26);c.restore()}
-function drawFilm(now){const stuck=halfPoly(d,false),lift=halfPoly(d,true);if(stuck.length>=3){path(stuck);c.fillStyle='rgba(233,231,223,0.8)';c.fill();c.save();path(stuck);c.clip();c.strokeStyle='rgba(120,116,108,0.10)';c.lineWidth=1;for(let i=-scr.h;i<scr.w;i+=9){c.beginPath();c.moveTo(scr.x+i,scr.y);c.lineTo(scr.x+i+scr.h,scr.y+scr.h);c.stroke()}c.restore()}
- if(d>1&&lift.length>=3){const seg=frontSeg(lift);const fc=seg?[(seg[0][0]+seg[1][0])/2,(seg[0][1]+seg[1][1])/2]:[A.x,A.y];const g=c.createLinearGradient(fc[0],fc[1],A.x,A.y);g.addColorStop(0,'rgba(255,255,255,0.97)');g.addColorStop(1,'rgba(255,255,255,0.45)');path(lift);c.fillStyle=g;c.fill();if(seg){c.save();c.shadowColor='rgba(45,39,31,.3)';c.shadowBlur=10;c.shadowOffsetY=4;c.strokeStyle='rgba(255,255,255,0.95)';c.lineWidth=7;c.lineCap='round';c.beginPath();c.moveTo(seg[0][0],seg[0][1]);c.lineTo(seg[1][0],seg[1][1]);c.stroke();c.restore()}}
- if(d<2&&state==='on'&&!dragging){const f=40+Math.sin(now/450)*6;c.save();c.shadowColor='rgba(45,39,31,.35)';c.shadowBlur=8;c.shadowOffsetY=3;c.beginPath();c.moveTo(A.x-f,A.y);c.lineTo(A.x,A.y+f);c.lineTo(A.x,A.y);c.closePath();c.fillStyle='rgba(255,255,255,0.95)';c.fill();c.restore()}}
-function drawFlying(){if(!fly)return;const t=fly.t;const lift=halfPoly(fly.d0,true);if(lift.length<3)return;const dir={x:-u.x,y:-u.y-0.35};const off=L*1.1*t;c.save();c.translate(dir.x*off+scr.x*0,dir.y*off);const cxp=A.x+u.x*fly.d0*0.5,cyp=A.y+u.y*fly.d0*0.5;c.translate(cxp,cyp);c.rotate(t*1.1);c.translate(-cxp,-cyp);c.globalAlpha=1-t*0.35;path(lift);c.fillStyle='rgba(250,249,245,0.9)';c.fill();c.restore()}
-function drawSparkles(now){for(const s of sparkles){const ph=(now-s.t0)/700;if(ph<0||ph>1)continue;const a=Math.sin(ph*Math.PI);const r2=4+9*a;c.save();c.translate(s.x,s.y);c.globalAlpha=a;c.fillStyle='#fff';c.beginPath();c.moveTo(0,-r2);c.quadraticCurveTo(0,0,r2,0);c.quadraticCurveTo(0,0,0,r2);c.quadraticCurveTo(0,0,-r2,0);c.quadraticCurveTo(0,0,0,-r2);c.fill();c.restore()}}
-function frame(now){c.clearRect(0,0,W,H);if(!scr){requestAnimationFrame(frame);return}
- if(anim){const p=Math.min(1,(now-anim.t0)/anim.dur);anim.step(p);if(p>=1){const cb=anim.done;anim=null;if(cb)cb()}}
- drawScreen(now);
- if(state==='on')drawFilm(now);
- if(state==='applying'){const dd=L*(1-applyP);const stuck=halfPoly(dd,false);if(stuck.length>=3){path(stuck);c.fillStyle='rgba(233,231,223,0.8)';c.fill()}}
- if(state==='leaving')drawFlying();
- if(state==='off')drawSparkles(now);
- requestAnimationFrame(frame)}
-function springBack(){const d0=d;anim={t0:performance.now(),dur:280,step:p=>{const e=1-Math.pow(1-p,3);d=d0*(1-e)},done:()=>{d=0;if(d0>30){slap();buzz(18)}}}}
-function fullPeel(){if(state!=='on')return;state='leaving';dragging=false;thwip();buzz([15,40,20]);const d0=d;fly={t:0,d0};anim={t0:performance.now(),dur:550,step:p=>{fly.t=p*p},done:()=>{state='off';fly=null;d=0;const now=performance.now();sparkles=[];for(let i=0;i<5;i++){sparkles.push({x:scr.x+scr.w*(0.15+Math.random()*0.7),y:scr.y+scr.h*(0.12+Math.random()*0.7),t0:now+120*i});ping(0.12*i)}hintEl.textContent='shiny. tap the screen for a new film'}}}
-function applyFilm(){if(state!=='off')return;state='applying';sparkles=[];squeegee();buzz(12);anim={t0:performance.now(),dur:480,step:p=>{applyP=p},done:()=>{state='on';d=0;hintEl.textContent='grab the film \u00b7 peel it back \u00b7 let go anytime'}}}
+function duckLocal(p){return{x:(p.x-W/2)/sc,y:(p.y-groundY)/sc}}
+function onDuck(l){return l.x>-150&&l.x<150&&l.y>-320&&l.y<30}
 function pos(e){const r=cv.getBoundingClientRect();return{x:e.clientX-r.x,y:e.clientY-r.y}}
-cv.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);if(state==='off'){if(inside(p))applyFilm();return}if(state!=='on'||!inside(p))return;dragging=true;cv.setPointerCapture(e.pointerId);grabOff=d-proj(p);lastD=d;lastT=performance.now()});
-cv.addEventListener('pointermove',e=>{if(!dragging||state!=='on')return;const p=pos(e);const nd=clamp(proj(p)+grabOff,0,L);const now=performance.now();const v=(nd-lastD)/Math.max(1,now-lastT)*1000;d=nd;if(Math.abs(v)>50&&now-lastGrain>26){lastGrain=now;grain(clamp(Math.abs(v)/850,0.12,1));if(Math.random()<0.35)buzz(6)}if(d>=L-4){fullPeel();return}lastD=nd;lastT=now});
-cv.addEventListener('pointerup',()=>{if(!dragging)return;dragging=false;if(state==='on')springBack()});
-cv.addEventListener('pointercancel',()=>{if(!dragging)return;dragging=false;if(state==='on')springBack()});
+
+function drawDuck(now,sEff){
+ const breathe=pressing?0:0.012*Math.sin(now/900);
+ const sq=clamp(sEff+breathe,-0.15,1);
+ c.save();c.translate(W/2,groundY);
+ c.save();c.scale(sc,sc);c.beginPath();c.ellipse(0,4,96+42*sq,13+4*sq,0,0,Math.PI*2);c.fillStyle='rgba(45,39,31,'+(0.16+0.1*sq)+')';c.fill();c.restore();
+ c.scale(sc*(1+0.38*sq),sc*(1-0.46*sq));
+ const g=c.createLinearGradient(0,-300,0,0);g.addColorStop(0,'#ffdd6b');g.addColorStop(0.55,'#ffd54a');g.addColorStop(1,'#f7b731');
+ c.beginPath();c.ellipse(0,-108,106,96,0,0,Math.PI*2);c.fillStyle=g;c.fill();
+ c.beginPath();c.moveTo(72,-158);c.quadraticCurveTo(118,-168,116,-128);c.quadraticCurveTo(96,-138,68,-130);c.closePath();c.fillStyle='#f2b53a';c.fill();
+ c.save();c.translate(28,-104);c.rotate(-0.35);c.beginPath();c.ellipse(0,0,47,31,0,0,Math.PI*2);c.fillStyle='#f2b53a';c.fill();c.restore();
+ c.beginPath();c.arc(-8,-226,63,0,Math.PI*2);c.fillStyle=g;c.fill();
+ c.save();c.globalAlpha=0.22;c.beginPath();c.ellipse(-30,-258,26,15,-0.5,0,Math.PI*2);c.fillStyle='#fff';c.fill();c.restore();
+ c.beginPath();c.ellipse(-72,-222,27,16,0,0,Math.PI*2);c.fillStyle='#ff8f3c';c.fill();
+ c.beginPath();c.ellipse(-68,-212,19,9,0,0,Math.PI*2);c.fillStyle='#f07f2e';c.fill();
+ const closed=sq>0.6||(now<blinkT);
+ if(closed){c.beginPath();c.arc(-24,-244,10,Math.PI*0.15,Math.PI*0.85);c.strokeStyle='#22211f';c.lineWidth=3.4;c.lineCap='round';c.stroke()}
+ else{c.beginPath();c.arc(-24,-246,9.5,0,Math.PI*2);c.fillStyle='#22211f';c.fill();c.beginPath();c.arc(-27,-249,3.2,0,Math.PI*2);c.fillStyle='#fff';c.fill()}
+ c.save();c.globalAlpha=0.35+0.45*sq;c.beginPath();c.arc(14,-210,10+5*sq,0,Math.PI*2);c.fillStyle='#ff9d8a';c.fill();c.restore();
+ c.restore()}
+
+function frame(now){c.clearRect(0,0,W,H);
+ if(now>nextBlink){blinkT=now+130;nextBlink=now+2600+Math.random()*2600}
+ let sEff=s;
+ if(spring){const t=(now-spring.t0)/1000;const k=spring.s0*Math.exp(-5.2*t)*Math.cos(11*t);sEff=k;if(t>0.85){spring=null;sEff=0;s=0}}
+ drawDuck(now,sEff);
+ requestAnimationFrame(frame)}
+
+cv.addEventListener('pointerdown',e=>{e.preventDefault();const p=pos(e);if(!onDuck(duckLocal(p)))return;pressing=true;spring=null;cv.setPointerCapture(e.pointerId);grabY=p.y;lastBlipS=s;squeezeS();buzz(10)});
+cv.addEventListener('pointermove',e=>{if(!pressing)return;const p=pos(e);const ns=clamp(0.12+(p.y-grabY)/105,0,1);if(Math.abs(ns-lastBlipS)>0.17){lastBlipS=ns;blip(ns);buzz(8)}s=ns;if(s>=0.97&&!bigDone){bigDone=true;bigS();buzz([20,40,45])}});
+function letGo(){if(!pressing)return;pressing=false;bigDone=false;if(s>0.05){releaseS();buzz(12)}spring={t0:performance.now(),s0:s}}
+cv.addEventListener('pointerup',letGo);
+cv.addEventListener('pointercancel',letGo);
 layout();requestAnimationFrame(frame);
 </script></body></html>
