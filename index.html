@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#f5efe4">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="description" content="A pocket shelf of tiny, satisfying playthings.">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+  <title>Fifteen</title>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Fifteen home"><span>15</span> FIFTEEN</a>
+    <button id="soundBtn" class="sound" aria-pressed="false"><span class="sound-icon">◖</span><span class="sound-label">sound off</span></button>
+  </header>
+
+  <main>
+    <section id="home" class="view home-view active" aria-labelledby="homeTitle">
+      <div class="intro">
+        <p class="eyebrow">A pocket shelf of tiny breaks</p>
+        <h1 id="homeTitle">Pick a feeling.<br><em>Play for fifteen.</em></h1>
+        <p>No streaks. No scores. Just something satisfying to do with your hands.</p>
+      </div>
+      <div class="shelf" aria-label="Stress busters">
+        <button class="toy-card soap-card" data-toy="soap">
+          <span class="card-no">01</span><span class="card-time">15 sec</span>
+          <span class="mini-soap" aria-hidden="true"><i></i><i></i><i></i></span>
+          <span class="card-copy"><strong>Soap Slice</strong><small>slow, soft, clean</small></span>
+          <span class="card-arrow">↗</span>
+        </button>
+        <button class="toy-card bubble-card" data-toy="bubble">
+          <span class="card-no">02</span><span class="card-time">free play</span>
+          <span class="mini-bubbles" aria-hidden="true"></span>
+          <span class="card-copy"><strong>Bubble Wrap</strong><small>pop every last one</small></span>
+          <span class="card-arrow">↗</span>
+        </button>
+        <button class="toy-card smash-card" data-toy="smash">
+          <span class="card-no">03</span><span class="card-time">15 sec</span>
+          <span class="mini-smash" aria-hidden="true">UGH</span>
+          <span class="card-copy"><strong>Smash</strong><small>write it, then wreck it</small></span>
+          <span class="card-arrow">↗</span>
+        </button>
+      </div>
+    </section>
+
+    <section id="play" class="view play-view" aria-live="polite">
+      <div class="play-head">
+        <button id="backBtn" class="back">← shelf</button>
+        <div class="timer"><span id="timerText">15</span><i><b id="timerBar"></b></i></div>
+        <button id="resetBtn" class="reset">again ↻</button>
+      </div>
+      <div id="toyStage" class="toy-stage"></div>
+      <p id="hint" class="hint"></p>
+    </section>
+  </main>
+
+  <footer><span>three tiny breaks</span><span>prototype · v0.1</span></footer>
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>
